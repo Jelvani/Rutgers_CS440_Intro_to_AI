@@ -94,12 +94,21 @@ def loadmaze(num=0,fname_template='maze'):
     except:
         print('Error loading maze from file')
 
+def getHeuristics(maze,goal):#returns numpy matrix of manhatten distances of each node to goal node
+    X,Y = maze.shape
+    gX,gY=goal
+    print(goal)
+    heaurstics = np.zeros((X,Y)) #visited matrix
+    for y in heaurstics:
+        for x in y:
+            heaurstics[x][y] = 10#(abs(gX-x)+abs(gY-y))
+    return heaurstics
 
-savemazes(num=10)
-'''
-maze=loadmaze(num=1)
-plt.figure()
-plt.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
+
+maze=loadmaze(num=2)
+A,B = maze.shape
+maze[0,B-1]=10 #goal node
+heur = getHeuristics(maze,(0,B-1))
+plt.imshow(heur, interpolation='nearest')
 plt.xticks([]), plt.yticks([])
 plt.show()
-'''
