@@ -50,7 +50,7 @@ def createBtrackingMaze(width=101,height=101,save=False,imgfname=None,txtfname=N
     plt.figure()
     plt.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
     plt.xticks([]), plt.yticks([])
-    if not save:
+    if not save:    
         plt.show()
     else:
         try:
@@ -67,7 +67,7 @@ def createRandMaze(width=101,height=101,prob=0.3,save=False,imgfname=None,txtfna
     plt.figure()
     plt.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
     plt.xticks([]), plt.yticks([])
-    if not save:
+    if not save:    
         plt.show()
     else:
         try:
@@ -97,18 +97,20 @@ def loadmaze(num=0,fname_template='maze'):
 def getHeuristics(maze,goal):#returns numpy matrix of manhatten distances of each node to goal node
     X,Y = maze.shape
     gX,gY=goal
-    print(goal)
-    heaurstics = np.zeros((X,Y)) #visited matrix
-    for y in heaurstics:
-        for x in y:
-            heaurstics[x][y] = 10#(abs(gX-x)+abs(gY-y))
+    heaurstics = np.zeros((X,Y),dtype=int) #visited matrix
+    for y in range(Y):
+        for x in range(X):
+            heaurstics[x,y] = (abs(gX-x)+abs(gY-y))
     return heaurstics
 
-
-maze=loadmaze(num=2)
+def AstarCompute(map,start,goal):
+    
+#savemazes(10)
+maze=loadmaze(num=1)
 A,B = maze.shape
-maze[0,B-1]=10 #goal node
-heur = getHeuristics(maze,(0,B-1))
-plt.imshow(heur, interpolation='nearest')
+goal=(100,100)
+heur = getHeuristics(maze,goal)
+plt.imshow(maze,cmap=plt.cm.binary)
+plt.imshow(heur,alpha=0.5)
 plt.xticks([]), plt.yticks([])
 plt.show()
