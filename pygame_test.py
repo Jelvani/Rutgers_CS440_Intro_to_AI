@@ -4,6 +4,16 @@ import random as rand
 import time
 import os
 
+class Node():
+    def __init__(self,parent = None,position = None,g = 0,h = 0):
+        self.parent = parent #type Node
+        self.position = position #tuple (x,y)
+        self.g = g
+        self.h = h
+        self.f = g + h
+    def __eq__(self, otherNode): # use == operator to call this for nodes to test if position is equal
+        return otherNode.position == self.position
+
 def createBtrackingMaze(width=101,height=101,save=False,imgfname=None,txtfname=None):
     shape=(width,height)
     print('createBtrackingMaze: maze size of ' + str(shape))
