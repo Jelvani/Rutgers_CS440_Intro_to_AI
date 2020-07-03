@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import random as rand
 import time
 import os
+import heapq
 
 class Node():
     def __init__(self,parent = None,position = None,g = 0,h = 0):
@@ -10,9 +11,14 @@ class Node():
         self.position = position #tuple (x,y)
         self.g = g
         self.h = h
-        self.f = g + h
     def __eq__(self, otherNode): # use == operator to call this for nodes to test if position is equal
         return otherNode.position == self.position
+    def __lt__(self, otherNode):
+        return self.f<otherNode.f
+
+    @property
+    def f(self):#automatically adds g + h when the value of f is needed, no need to manual set f=g+h
+        return self.g + self.h
 
 def createBtrackingMaze(width=101,height=101,save=False,imgfname=None,txtfname=None):
     shape=(width,height)
@@ -70,7 +76,7 @@ def createBtrackingMaze(width=101,height=101,save=False,imgfname=None,txtfname=N
         except:
             print('Error saving file with given filename')
 
-def createRandMaze(width=101,height=101,prob=0.3,save=False,imgfname=None,txtfname=None): #prob is probability of a wall appearing
+def createRandMaze(width=101,height=101,prob=0.0,save=False,imgfname=None,txtfname=None): #prob is probability of a wall appearing
     shape=(width,height)
     print('createRandMaze: maze size of ' + str(shape))
     maze = np.random.choice([0,1],size=shape,p=[1-prob,prob])
@@ -113,14 +119,67 @@ def getHeuristics(maze,goal):#returns numpy matrix of manhatten distances of eac
             heaurstics[x,y] = (abs(gX-x)+abs(gY-y))
     return heaurstics
 
-def AstarCompute(map,start,goal):
+def AstarCompute(map,start,goal,heuristics):
+    X,Y = map.shape
+    closedList = []
+    openList = []
+    startNode = Node(position=start,g = 0,h = heuristics[start])
+    goalNode = Node(position=goal,g = 0,h = 0)
+    #openList.append(startNode)
+    heapq.heappush(openList,startNode)
+    while(openList):
+
+        '''get node in openlist with lowest f value'''
+        index = 0
+        '''
+        current = openList[index]
+        for x, val in enumerate(openList):#gets the node with lowest f value
+            if(current.f > val.f):
+                current = openList[x]
+                index = x
+        openList.pop(index)
+        '''
+        current=heapq.heappop(openList)
+        closedList.append(current)#add to closed once once chosen for expansion
+        A,B = current.position
+        print(len(openList))
+        '''right after appending to closed list, check if appended node is the goal and return if it is'''
+        if current == goalNode:
+            return current
+
+        '''add children of current that are not in the closed list to the open list'''
+        children = [] #temporary list
+        for x in [(1,0),(-1,0),(0,1),(0,-1)]:
+            if A+x[0] in range(X) and B+x[1] in range(Y) and map[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
+                children.append((A+x[0],B+x[1]))
+        for x in closedList:
+            for y in children:
+                if y == x.position:
+                    children.remove(y)
+        for x in children:
+            newNode = Node(parent=current, position=x, g=current.g+1, h=heuristics[x]) 
+            openList.append(newNode)
     
+        
+        
+
+
 #savemazes(10)
+
 maze=loadmaze(num=1)
 A,B = maze.shape
 goal=(100,100)
+start=(0,0)
 heur = getHeuristics(maze,goal)
+
+nodes = AstarCompute(maze,start,goal,heur)
+path = np.zeros(maze.shape, dtype=int)
+while nodes is not None:
+    path[nodes.position]=100
+    nodes=nodes.parent
+path[start]=200
+path[goal]=200
 plt.imshow(maze,cmap=plt.cm.binary)
-plt.imshow(heur,alpha=0.5)
+plt.imshow(path,alpha=0.5)
 plt.xticks([]), plt.yticks([])
 plt.show()
