@@ -13,7 +13,9 @@ class Node():
         self.h = h
     def __eq__(self, otherNode): # use == operator to call this for nodes to test if position is equal
         return otherNode.position == self.position
-    def __lt__(self, otherNode):
+    def __lt__(self, otherNode): # use < operator to call this for nodes to test if position is less than
+        if self.f == otherNode.f: #tie breaker for same f value
+            return self.g>otherNode.g
         return self.f<otherNode.f
 
     @property
@@ -76,7 +78,7 @@ def createBtrackingMaze(width=101,height=101,save=False,imgfname=None,txtfname=N
         except:
             print('Error saving file with given filename')
 
-def createRandMaze(width=101,height=101,prob=0.1,save=False,imgfname=None,txtfname=None): #prob is probability of a wall appearing
+def createRandMaze(width=101,height=101,prob=0.0,save=False,imgfname=None,txtfname=None): #prob is probability of a wall appearing
     shape=(width,height)
     print('createRandMaze: maze size of ' + str(shape))
     maze = np.random.choice([0,1],size=shape,p=[1-prob,prob])
@@ -99,9 +101,9 @@ def savemazes(num=1,fname_template='maze'):#num of mazes to save, name of files 
     if not os.path.exists('generated_mazes/maze_files'):
         os.makedirs('generated_mazes/maze_files')
     for i in range(int(num/2)):
-        createBtrackingMaze(width=200,height=200,save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i)+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i)+'.txt'))
+        createBtrackingMaze(save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i)+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i)+'.txt'))
     for i in range(int(num/2)):
-        createRandMaze(width=200,height=200,save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i+int(num/2))+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i+int(num/2))+'.txt'))
+        createRandMaze(save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i+int(num/2))+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i+int(num/2))+'.txt'))
 
 def loadmaze(num=0,fname_template='maze'):
     try:
@@ -122,45 +124,64 @@ def getHeuristics(maze,goal):#returns numpy matrix of manhatten distances of eac
 def AstarCompute(map,start,goal,heuristics):
     startTime = time.time()
     X,Y = map.shape
-    closedList = []
     openList = []
     expanded = np.zeros(map.shape, dtype=bool) #expanded matrix
     startNode = Node(position=start,g = 0,h = heuristics[start])
     goalNode = Node(position=goal,g = 0,h = 0)
     heapq.heappush(openList,startNode)
+    visitedNodes = 0
+    expandedNodes = 0
     while(openList):
-
+        #print(len(openList))
         '''get node in openlist with lowest f value'''
-        index = 0
         current=heapq.heappop(openList)
-        closedList.append(current)#add to closed once once chosen for expansion
-        expanded[current.position]=True
+        expanded[current.position]=1
         A,B = current.position
         '''right after appending to closed list, check if appended node is the goal and return if it is'''
         if current == goalNode:
             break
-
-        for x in [(1,0),(-1,0),(0,1),(0,-1)]:
-            if A+x[0] in range(X) and B+x[1] in range(Y) and map[A+x[0],B+x[1]]==0 and expanded[A+x[0],B+x[1]]==False:#if in range and not a wall, add to temporary list
+        expandedNodes = expandedNodes + 1
+        for x in [(1,0),(-1,0),(0,1),(0,-1)]:#TODO: add map and expanded into one common boolean list
+            if A+x[0] in range(X) and B+x[1] in range(Y) and map[A+x[0],B+x[1]]==0 and expanded[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
                 newNode = Node(parent=current, position=(A+x[0],B+x[1]), g=current.g+1, h=heuristics[(A+x[0],B+x[1])]) 
-                openList.append(newNode)
-
-    print('AstarCompute: time to A* search maze was %s seconds' %(time.time()-startTime))
+                visitedNodes = visitedNodes +1
+                heapq.heappush(openList,newNode)            
+    endTime = time.time()
+    print('AstarCompute: time to A* search maze was %s seconds' %(endTime-startTime))
+    print('AstarCompute: %s nodes visited' %visitedNodes)
+    print('AstarCompute: %s nodes expanded' %expandedNodes)
     return current
     
-
 #savemazes(10)
 
-maze=loadmaze(num=8)
+def repeatedForwardAstar(map, start, goal):
+    current = start
+    X,Y = map.shape
+    A,B = current
+    heur = getHeuristics(map,goal)
+    seenMap = np.zeros(map.shape, dtype=bool) #map with only seen walls
+    while current != goal:
+
+        ''' update seen map with only adjacent walls that are visible '''
+        for x in [(1,0),(-1,0),(0,1),(0,-1)]:
+            if A+x[0] in range(X) and B+x[1] in range(Y) and map[A+x[0],B+x[1]]==1:
+                seenMap[A+x[0],B+x[1]] = 1
+        path = []
+        nodes = AstarCompute(map=map,start=start,goal=goal,heuristics=heur)
+        while nodes is not None:
+            path.append(nodes.position)
+            nodes=nodes.parent
+        
+maze=loadmaze(num=1)
 A,B = maze.shape
-goal=(180,179)
+goal=(50,50)
 start=(0,0)
 heur = getHeuristics(maze,goal)
 nodes = AstarCompute(map=maze,start=start,goal=goal,heuristics=heur)
 path = np.zeros(maze.shape, dtype=float)
 color = 200
 while nodes is not None:
-    color=color+1
+    #color=color+1
     path[nodes.position]=color
     nodes=nodes.parent
 path[start]=200
