@@ -76,7 +76,7 @@ def createBtrackingMaze(width=101,height=101,save=False,imgfname=None,txtfname=N
         except:
             print('Error saving file with given filename')
 
-def createRandMaze(width=101,height=101,prob=0.0,save=False,imgfname=None,txtfname=None): #prob is probability of a wall appearing
+def createRandMaze(width=101,height=101,prob=0.1,save=False,imgfname=None,txtfname=None): #prob is probability of a wall appearing
     shape=(width,height)
     print('createRandMaze: maze size of ' + str(shape))
     maze = np.random.choice([0,1],size=shape,p=[1-prob,prob])
@@ -99,9 +99,9 @@ def savemazes(num=1,fname_template='maze'):#num of mazes to save, name of files 
     if not os.path.exists('generated_mazes/maze_files'):
         os.makedirs('generated_mazes/maze_files')
     for i in range(int(num/2)):
-        createBtrackingMaze(save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i)+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i)+'.txt'))
+        createBtrackingMaze(width=200,height=200,save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i)+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i)+'.txt'))
     for i in range(int(num/2)):
-        createRandMaze(save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i+int(num/2))+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i+int(num/2))+'.txt'))
+        createRandMaze(width=200,height=200,save=True,imgfname=('generated_mazes/images/'+str(fname_template)+str(i+int(num/2))+'.png'),txtfname=('generated_mazes/maze_files/'+str(fname_template)+str(i+int(num/2))+'.txt'))
 
 def loadmaze(num=0,fname_template='maze'):
     try:
@@ -120,62 +120,48 @@ def getHeuristics(maze,goal):#returns numpy matrix of manhatten distances of eac
     return heaurstics
 
 def AstarCompute(map,start,goal,heuristics):
+    startTime = time.time()
     X,Y = map.shape
     closedList = []
     openList = []
+    expanded = np.zeros(map.shape, dtype=bool) #expanded matrix
     startNode = Node(position=start,g = 0,h = heuristics[start])
     goalNode = Node(position=goal,g = 0,h = 0)
-    #openList.append(startNode)
     heapq.heappush(openList,startNode)
     while(openList):
 
         '''get node in openlist with lowest f value'''
         index = 0
-        '''
-        current = openList[index]
-        for x, val in enumerate(openList):#gets the node with lowest f value
-            if(current.f > val.f):
-                current = openList[x]
-                index = x
-        openList.pop(index)
-        '''
         current=heapq.heappop(openList)
         closedList.append(current)#add to closed once once chosen for expansion
+        expanded[current.position]=True
         A,B = current.position
-        print(len(openList))
         '''right after appending to closed list, check if appended node is the goal and return if it is'''
         if current == goalNode:
-            return current
+            break
 
-        '''add children of current that are not in the closed list to the open list'''
-        children = [] #temporary list
         for x in [(1,0),(-1,0),(0,1),(0,-1)]:
-            if A+x[0] in range(X) and B+x[1] in range(Y) and map[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
-                children.append((A+x[0],B+x[1]))
-        for x in closedList:
-            for y in children:
-                if y == x.position:
-                    children.remove(y)
-        for x in children:
-            newNode = Node(parent=current, position=x, g=current.g+1, h=heuristics[x]) 
-            openList.append(newNode)
-    
-        
-        
+            if A+x[0] in range(X) and B+x[1] in range(Y) and map[A+x[0],B+x[1]]==0 and expanded[A+x[0],B+x[1]]==False:#if in range and not a wall, add to temporary list
+                newNode = Node(parent=current, position=(A+x[0],B+x[1]), g=current.g+1, h=heuristics[(A+x[0],B+x[1])]) 
+                openList.append(newNode)
 
+    print('AstarCompute: time to A* search maze was %s seconds' %(time.time()-startTime))
+    return current
+    
 
 #savemazes(10)
 
-maze=loadmaze(num=1)
+maze=loadmaze(num=8)
 A,B = maze.shape
-goal=(100,100)
+goal=(180,179)
 start=(0,0)
 heur = getHeuristics(maze,goal)
-
-nodes = AstarCompute(maze,start,goal,heur)
-path = np.zeros(maze.shape, dtype=int)
+nodes = AstarCompute(map=maze,start=start,goal=goal,heuristics=heur)
+path = np.zeros(maze.shape, dtype=float)
+color = 200
 while nodes is not None:
-    path[nodes.position]=100
+    color=color+1
+    path[nodes.position]=color
     nodes=nodes.parent
 path[start]=200
 path[goal]=200
