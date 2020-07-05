@@ -17,7 +17,6 @@ class Node():
         if self.f == otherNode.f: #tie breaker for same f value
             return self.g>otherNode.g
         return self.f<otherNode.f
-
     @property
     def f(self):#automatically adds g + h when the value of f is needed, no need to manual set f=g+h
         return self.g + self.h
@@ -132,7 +131,6 @@ def AstarCompute(map,start,goal,heuristics, _debug=True):
     visitedNodes = 0
     expandedNodes = 0
     while(openList):
-        #print(len(openList))
         '''get node in openlist with lowest f value'''
         current=heapq.heappop(openList)
         expanded[current.position]=1
@@ -152,8 +150,6 @@ def AstarCompute(map,start,goal,heuristics, _debug=True):
         print('AstarCompute: %s nodes visited' %visitedNodes)
         print('AstarCompute: %s nodes expanded' %expandedNodes)
     return current
-    
-#savemazes(10)
 
 def repeatedForwardAstar(map, start, goal):
     startTime = time.time()
@@ -163,27 +159,25 @@ def repeatedForwardAstar(map, start, goal):
     seenMap = np.zeros(map.shape, dtype=bool) #map with only seen walls
     followedMap = np.zeros(map.shape, dtype=bool) #used to keep track of travelled path
     path = [] #current path being executed by latest A* call
-    toggle = False
     nodes = AstarCompute(map=seenMap,start=current,goal=goal,heuristics=heur,_debug=False) #initial path on empty (no wall) map
     while nodes is not None: #get array of positions to travel from A* linked liost
-                path.append(nodes.position)
-                nodes=nodes.parent
+        path.append(nodes.position)
+        nodes=nodes.parent
 
     while current != goal:
         A,B = current
         ''' update seen map with only adjacent walls that are visible '''
         for x in [(1,0),(-1,0),(0,1),(0,-1)]:
             if A+x[0] in range(X) and B+x[1] in range(Y) and map[A+x[0],B+x[1]]==1:
-                toggle = True
                 seenMap[A+x[0],B+x[1]] = 1
-        ''' if new walls seen, then compute astar again'''
-        if toggle:
-            toggle = False
+        ''' if new walls seen on current path, then compute A* again'''
+        if seenMap[path[-1]] == 1:
             path.clear()
             nodes = AstarCompute(map=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
             while nodes.parent is not None:#get list of path to follow from linked list
                 path.append(nodes.position)
                 nodes=nodes.parent
+        
         current = path.pop()
         followedMap[current] = 1
     endTime = time.time()
