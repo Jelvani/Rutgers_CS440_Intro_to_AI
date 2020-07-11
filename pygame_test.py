@@ -142,7 +142,7 @@ def AstarCompute(maze,start,goal,heuristics, _debug=True):
         '''right after appending to closed list, check if appended node is the goal and return if it is'''
         if current == goalNode:
             break
-        for x in [(1,0),(0,1),(-1,0),(0,-1)]:#TODO: add map and expanded into one common boolean list
+        for x in [(1,0),(0,1),(-1,0),(0,-1)]:
             if A+x[0] in range(X) and B+x[1] in range(Y) and maze[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
                 newNode = Node(parent=current, position=(A+x[0],B+x[1]), g=current.g+1, h=heuristics[(A+x[0],B+x[1])]) 
                 visited[A+x[0],B+x[1]]=1
@@ -162,6 +162,7 @@ def AdaptiveAstarCompute(maze,start,goal,heuristics, _debug=True):
     startTime = time.time()
     X,Y = maze.shape
     openList = []
+    closedList = []
     expanded = np.zeros(maze.shape, dtype=bool) #closed list
     visited = np.zeros(maze.shape, dtype=bool) 
     startNode = Node(position=start,g = 0,h = heuristics[start])
@@ -175,12 +176,12 @@ def AdaptiveAstarCompute(maze,start,goal,heuristics, _debug=True):
         if expanded[current.position]==1:#if already explored, pop another node
             continue
         expanded[current.position]=1
-        
+        closedList.append(current)
         A,B = current.position
         '''right after appending to closed list, check if appended node is the goal and return if it is'''
         if current == goalNode:
             break
-        for x in [(1,0),(0,1),(-1,0),(0,-1)]:#TODO: add map and expanded into one common boolean list
+        for x in [(1,0),(0,1),(-1,0),(0,-1)]:
             if A+x[0] in range(X) and B+x[1] in range(Y) and maze[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
                 newNode = Node(parent=current, position=(A+x[0],B+x[1]), g=current.g+1, h=heuristics[(A+x[0],B+x[1])]) 
                 visited[A+x[0],B+x[1]]=1
@@ -189,18 +190,20 @@ def AdaptiveAstarCompute(maze,start,goal,heuristics, _debug=True):
     endTime = time.time()
     if not openList:
         print('AdaptiveAstarCompute: No solution')
-        return None
+        return None, None
     if _debug:
         print('AdaptiveAstarCompute: time to A* search maze was %s seconds' %(endTime-startTime))
         print('AdaaptiveAstarCompute: %s nodes visited' %visitedNodes)
         print('AdaptiveAstarCompute: %s nodes expanded' %np.count_nonzero(expanded))
-    return current
+    return current,closedList
 
-def repeatedForwardAstar(maze, start, goal):
+def repeatedForwardAstar(maze, start, goal,useAdaptive = False):
     startTime = time.time()
     current = start
     X,Y = maze.shape
     followLength = 0
+    g_n = 0
+    closedList = []
     heur = getHeuristics(maze,goal)
     seenMap = np.zeros(maze.shape, dtype=bool) #map with only seen walls
     followedMap = np.zeros(maze.shape, dtype=bool) #used to keep track of travelled path
@@ -211,6 +214,7 @@ def repeatedForwardAstar(maze, start, goal):
         nodes=nodes.parent
 
     while current != goal:
+        
         A,B = current
         ''' update seen map with only adjacent walls that are visible '''
         for x in [(1,0),(-1,0),(0,1),(0,-1)]:
@@ -220,12 +224,21 @@ def repeatedForwardAstar(maze, start, goal):
         ''' if new walls seen on current path, then compute A* again'''
         if seenMap[path[-1]] == 1:
             path.clear()
-            nodes = AstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
+            if not useAdaptive:
+                nodes = AstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
+            else:
+                if closedList: #after first call
+                    for x in  closedList:
+                        heur[x.position] = g_n - x.g
+                nodes, closedList = AdaptiveAstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
+                g_n = 0
             if nodes is None:
                 return None
             while nodes is not None:#get list of path to follow from linked list
                 path.append(nodes.position)
+                g_n = g_n + 1
                 nodes=nodes.parent
+            
         current = path.pop()
         followedMap[current] = 1
         followLength = followLength + 1
@@ -277,7 +290,6 @@ def performTests():
     runtimes = []
 
     for x in range(50):
-        x=x+37
         print('performTests: %s' %x)
         maze=loadmaze(num=x)
         A,B = maze.shape
@@ -286,7 +298,7 @@ def performTests():
         heur = getHeuristics(maze,goal)
         seenmap = np.zeros(maze.shape, dtype=bool)
         startTime = time.time()
-        seenmap = repeatedBackwardAstar(maze,start,goal)
+        seenmap = repeatedForwardAstar(maze,start,goal,useAdaptive=True)
         endTime = time.time()-startTime
         if seenmap is None:
             print('performTests: No solution')
@@ -297,7 +309,7 @@ def performTests():
         np.savetxt(fname = 'generated_mazes/performTests.txt', X = runtimes)       
 
       
-    
+'''      
 maze=loadmaze(num=14)  
 
 A,B = maze.shape
@@ -306,29 +318,29 @@ start=(0,0)
 heur = getHeuristics(maze,goal)
 seenmap = np.zeros(maze.shape, dtype=bool)
 #startTime = time.time()
-seenmap = repeatedForwardAstar(maze,start,goal)
+seenmap = repeatedForwardAstar(maze,start,goal,useAdaptive=True)
 #seenmap = repeatedBackwardAstar(maze,start,goal)
 plt.figure()
 plt.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
 plt.imshow(seenmap,alpha=0.5)
 plt.xticks([]), plt.yticks([])
 plt.show()
+'''
 
-'''  
 plt.ylim(0,60)
 plt.xticks(np.arange(0, 50, step=1))
 plt.yticks(np.arange(0, 60, step=1))
-plt.title('Repeated Forward vs Backward A*')
+plt.title('Adaptive Forward A* vs Forward A*')
 plt.xlabel('Maze')
 plt.ylabel('Seconds')
 
 maze=np.loadtxt('generated_mazes/ForwardAstar_greaterG.txt')
 plt.plot(maze,"-b", label="Forward A*")
-maze=np.loadtxt('generated_mazes/BackwardAstar_greaterG.txt')
-plt.plot(maze,"-r", label="Backward A*")
+maze=np.loadtxt('generated_mazes/AdaptiveForwardAstart.txt')
+plt.plot(maze,"-r", label="Adaptive A*")
 plt.legend()
 plt.grid()
 plt.show()
-'''
+
 
 #performTests()
