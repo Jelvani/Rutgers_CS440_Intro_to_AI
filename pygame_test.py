@@ -15,7 +15,7 @@ class Node():
         return otherNode.position == self.position
     def __lt__(self, otherNode): # use < operator to call this for nodes to test if position is less than
         if self.f == otherNode.f: #tie breaker for same f value
-            return self.g>=otherNode.g
+            return self.g>=otherNode.g #change this line to edit g-value tie breaking testing
         else:
             return self.f<otherNode.f
     @property
@@ -124,7 +124,7 @@ def AstarCompute(maze,start,goal,heuristics, _debug=True):
     startTime = time.time()
     X,Y = maze.shape
     openList = []
-    expanded = np.zeros(maze.shape, dtype=bool) #expanded matrix
+    expanded = np.zeros(maze.shape, dtype=bool) #closed list
     visited = np.zeros(maze.shape, dtype=bool) 
     startNode = Node(position=start,g = 0,h = heuristics[start])
     goalNode = Node(position=goal,g = 9999,h = 0)
@@ -158,10 +158,49 @@ def AstarCompute(maze,start,goal,heuristics, _debug=True):
         print('AstarCompute: %s nodes expanded' %np.count_nonzero(expanded))
     return current
 
+def AdaptiveAstarCompute(maze,start,goal,heuristics, _debug=True):
+    startTime = time.time()
+    X,Y = maze.shape
+    openList = []
+    expanded = np.zeros(maze.shape, dtype=bool) #closed list
+    visited = np.zeros(maze.shape, dtype=bool) 
+    startNode = Node(position=start,g = 0,h = heuristics[start])
+    goalNode = Node(position=goal,g = 9999,h = 0)
+    heapq.heappush(openList,startNode)
+    heapq.heappush(openList,goalNode)
+    visitedNodes = 0
+    while(openList):
+        '''get node in openlist with lowest f value'''
+        current=heapq.heappop(openList)
+        if expanded[current.position]==1:#if already explored, pop another node
+            continue
+        expanded[current.position]=1
+        
+        A,B = current.position
+        '''right after appending to closed list, check if appended node is the goal and return if it is'''
+        if current == goalNode:
+            break
+        for x in [(1,0),(0,1),(-1,0),(0,-1)]:#TODO: add map and expanded into one common boolean list
+            if A+x[0] in range(X) and B+x[1] in range(Y) and maze[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
+                newNode = Node(parent=current, position=(A+x[0],B+x[1]), g=current.g+1, h=heuristics[(A+x[0],B+x[1])]) 
+                visited[A+x[0],B+x[1]]=1
+                visitedNodes = visitedNodes +1
+                heapq.heappush(openList,newNode)            
+    endTime = time.time()
+    if not openList:
+        print('AdaptiveAstarCompute: No solution')
+        return None
+    if _debug:
+        print('AdaptiveAstarCompute: time to A* search maze was %s seconds' %(endTime-startTime))
+        print('AdaaptiveAstarCompute: %s nodes visited' %visitedNodes)
+        print('AdaptiveAstarCompute: %s nodes expanded' %np.count_nonzero(expanded))
+    return current
+
 def repeatedForwardAstar(maze, start, goal):
     startTime = time.time()
     current = start
     X,Y = maze.shape
+    followLength = 0
     heur = getHeuristics(maze,goal)
     seenMap = np.zeros(maze.shape, dtype=bool) #map with only seen walls
     followedMap = np.zeros(maze.shape, dtype=bool) #used to keep track of travelled path
@@ -189,9 +228,10 @@ def repeatedForwardAstar(maze, start, goal):
                 nodes=nodes.parent
         current = path.pop()
         followedMap[current] = 1
+        followLength = followLength + 1
     endTime = time.time()
     print('repeatedForwardAstar: time to A* search maze was %s seconds' %(endTime-startTime))
-    print('repeatedForwardAstar: %s nodes travelled' %np.count_nonzero(followedMap))
+    print('repeatedForwardAstar: %s nodes travelled' %followLength)
     return followedMap
 
 def repeatedBackwardAstar(maze, start, goal):
@@ -199,6 +239,7 @@ def repeatedBackwardAstar(maze, start, goal):
     current = start
     X,Y = maze.shape
     heur = getHeuristics(maze,current)
+    followLength = 0
     seenMap = np.zeros(maze.shape, dtype=bool) #map with only seen walls
     followedMap = np.zeros(maze.shape, dtype=bool) #used to keep track of travelled path
     path = [] #current path being executed by latest A* call
@@ -225,17 +266,19 @@ def repeatedBackwardAstar(maze, start, goal):
                 nodes=nodes.parent
         current = path.pop(0)
         followedMap[current] = 1
+        followLength = followLength + 1
     endTime = time.time()
     print('repeatedBackwardAstar: time to A* search maze was %s seconds' %(endTime-startTime))
-    print('repeatedBackwardAstar: %s nodes travelled' %np.count_nonzero(followedMap))
+    print('repeatedBackwardAstar: %s nodes travelled' %followLength)
     return followedMap
+    
 
 def performTests():
-    file1 = open("generated_mazes/Tests.txt","w") 
-    for x in range(24):
-        x=x+25
+    runtimes = []
+
+    for x in range(50):
+        x=x+37
         print('performTests: %s' %x)
-        file1.write("Test %s \n" %x)
         maze=loadmaze(num=x)
         A,B = maze.shape
         goal=(100,100)
@@ -243,17 +286,20 @@ def performTests():
         heur = getHeuristics(maze,goal)
         seenmap = np.zeros(maze.shape, dtype=bool)
         startTime = time.time()
-        seenmap = repeatedForwardAstar(maze,start,goal)
+        seenmap = repeatedBackwardAstar(maze,start,goal)
+        endTime = time.time()-startTime
         if seenmap is None:
             print('performTests: No solution')
-            file1.write("No solution \n")
-        endTime = time.time()
-        print('performTests: Took %s seconds' %(endTime-startTime))
-        file1.write("%s \n" %(endTime-startTime))
-    file1.close() 
+            runtimes = np.append(arr = runtimes, values = -1)
+        else:
+            print('performTests: Took %s seconds' %(endTime))
+            runtimes = np.append(arr = runtimes, values = endTime)
+        np.savetxt(fname = 'generated_mazes/performTests.txt', X = runtimes)       
 
-'''
-maze=loadmaze(num=36)  
+      
+    
+maze=loadmaze(num=14)  
+
 A,B = maze.shape
 goal=(100,100)
 start=(0,0)
@@ -267,5 +313,22 @@ plt.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
 plt.imshow(seenmap,alpha=0.5)
 plt.xticks([]), plt.yticks([])
 plt.show()
+
+'''  
+plt.ylim(0,60)
+plt.xticks(np.arange(0, 50, step=1))
+plt.yticks(np.arange(0, 60, step=1))
+plt.title('Repeated Forward vs Backward A*')
+plt.xlabel('Maze')
+plt.ylabel('Seconds')
+
+maze=np.loadtxt('generated_mazes/ForwardAstar_greaterG.txt')
+plt.plot(maze,"-b", label="Forward A*")
+maze=np.loadtxt('generated_mazes/BackwardAstar_greaterG.txt')
+plt.plot(maze,"-r", label="Backward A*")
+plt.legend()
+plt.grid()
+plt.show()
 '''
-performTests()
+
+#performTests()
