@@ -125,17 +125,14 @@ def AstarCompute(maze,start,goal,heuristics, _debug=True):
     X,Y = maze.shape
     openList = []
     expanded = np.zeros(maze.shape, dtype=bool) #closed list
-    visited = np.zeros(maze.shape, dtype=bool) 
     startNode = Node(position=start,g = 0,h = heuristics[start])
     goalNode = Node(position=goal,g = 9999,h = 0)
     heapq.heappush(openList,startNode)
-    heapq.heappush(openList,goalNode)
     visitedNodes = 0
     while(openList):
         '''get node in openlist with lowest f value'''
         current=heapq.heappop(openList)
-        if expanded[current.position]==1:#if already explored, pop another node
-            continue
+        
         expanded[current.position]=1
         
         A,B = current.position
@@ -145,7 +142,6 @@ def AstarCompute(maze,start,goal,heuristics, _debug=True):
         for x in [(1,0),(0,1),(-1,0),(0,-1)]:
             if A+x[0] in range(X) and B+x[1] in range(Y) and maze[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
                 newNode = Node(parent=current, position=(A+x[0],B+x[1]), g=current.g+1, h=heuristics[(A+x[0],B+x[1])]) 
-                visited[A+x[0],B+x[1]]=1
                 visitedNodes = visitedNodes +1
                 heapq.heappush(openList,newNode)            
     endTime = time.time()
@@ -162,13 +158,11 @@ def AdaptiveAstarCompute(maze,start,goal,heuristics, _debug=True):
     startTime = time.time()
     X,Y = maze.shape
     openList = []
-    closedList = []
+    closedList = [] #returned for updating heuristics
     expanded = np.zeros(maze.shape, dtype=bool) #closed list
-    visited = np.zeros(maze.shape, dtype=bool) 
     startNode = Node(position=start,g = 0,h = heuristics[start])
     goalNode = Node(position=goal,g = 9999,h = 0)
     heapq.heappush(openList,startNode)
-    heapq.heappush(openList,goalNode)
     visitedNodes = 0
     while(openList):
         '''get node in openlist with lowest f value'''
@@ -184,7 +178,6 @@ def AdaptiveAstarCompute(maze,start,goal,heuristics, _debug=True):
         for x in [(1,0),(0,1),(-1,0),(0,-1)]:
             if A+x[0] in range(X) and B+x[1] in range(Y) and maze[A+x[0],B+x[1]]==0:#if in range and not a wall, add to temporary list
                 newNode = Node(parent=current, position=(A+x[0],B+x[1]), g=current.g+1, h=heuristics[(A+x[0],B+x[1])]) 
-                visited[A+x[0],B+x[1]]=1
                 visitedNodes = visitedNodes +1
                 heapq.heappush(openList,newNode)            
     endTime = time.time()
@@ -201,17 +194,20 @@ def repeatedForwardAstar(maze, start, goal,useAdaptive = False):
     startTime = time.time()
     current = start
     X,Y = maze.shape
-    followLength = 0
-    g_n = 0
-    closedList = []
+    followLength = 0 #total travelled path length
+    g_n = 0 # last computed shortest path distance to goal
+    closedList = [] #for adaptive A* only
     heur = getHeuristics(maze,goal)
     seenMap = np.zeros(maze.shape, dtype=bool) #map with only seen walls
     followedMap = np.zeros(maze.shape, dtype=bool) #used to keep track of travelled path
     path = [] #current path being executed by latest A* call
-    nodes = AstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False) #initial path on empty (no wall) map
-    while nodes is not None: #get array of positions to travel from A* linked list
-        path.append(nodes.position)
-        nodes=nodes.parent
+    if not useAdaptive:
+        nodes = AstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False) #initial path on empty (no wall) map
+    else:
+        nodes, closedList = AdaptiveAstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
+        while nodes is not None: #get array of positions to travel from A* linked list
+            path.append(nodes.position)
+            nodes=nodes.parent
 
     while current != goal:
         
@@ -227,9 +223,8 @@ def repeatedForwardAstar(maze, start, goal,useAdaptive = False):
             if not useAdaptive:
                 nodes = AstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
             else:
-                if closedList: #after first call
-                    for x in  closedList:
-                        heur[x.position] = g_n - x.g
+                for x in  closedList:
+                    heur[x.position] = g_n - x.g
                 nodes, closedList = AdaptiveAstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
                 g_n = 0
             if nodes is None:
@@ -298,7 +293,7 @@ def performTests():
         heur = getHeuristics(maze,goal)
         seenmap = np.zeros(maze.shape, dtype=bool)
         startTime = time.time()
-        seenmap = repeatedForwardAstar(maze,start,goal,useAdaptive=True)
+        seenmap = repeatedForwardAstar(maze,start,goal,useAdaptive=False)
         endTime = time.time()-startTime
         if seenmap is None:
             print('performTests: No solution')
@@ -309,16 +304,18 @@ def performTests():
         np.savetxt(fname = 'generated_mazes/performTests.txt', X = runtimes)       
 
       
-'''      
-maze=loadmaze(num=14)  
+
+
+maze=loadmaze(num=26)  
 
 A,B = maze.shape
 goal=(100,100)
 start=(0,0)
 heur = getHeuristics(maze,goal)
 seenmap = np.zeros(maze.shape, dtype=bool)
+total = 0
 #startTime = time.time()
-seenmap = repeatedForwardAstar(maze,start,goal,useAdaptive=True)
+seenmap = repeatedForwardAstar(maze,start,goal,useAdaptive=False)
 #seenmap = repeatedBackwardAstar(maze,start,goal)
 plt.figure()
 plt.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
@@ -326,7 +323,6 @@ plt.imshow(seenmap,alpha=0.5)
 plt.xticks([]), plt.yticks([])
 plt.show()
 '''
-
 plt.ylim(0,60)
 plt.xticks(np.arange(0, 50, step=1))
 plt.yticks(np.arange(0, 60, step=1))
@@ -341,6 +337,6 @@ plt.plot(maze,"-r", label="Adaptive A*")
 plt.legend()
 plt.grid()
 plt.show()
-
-
+'''
 #performTests()
+
