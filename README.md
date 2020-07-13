@@ -10,7 +10,8 @@ To run the code, the following Python modules need to be installed:
 * pygame
 * pygame_gui
 
-After installation, please run 
+After installation, please uncomment line in Astar.py main function and run Astar.py to generate initial 50 mazes.
+Then, run: 
 ```sh
 visualize.py
 ```
