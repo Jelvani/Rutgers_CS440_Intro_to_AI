@@ -8,6 +8,12 @@ To run the code, the following Python modules need to be installed:
 * numpy
 * matplotlib
 * pygame
+* pygame_gui
+
+After installation, please run 
+```sh
+visualize.py
+```
 ## Authors
 
 Alborz Jelvani
