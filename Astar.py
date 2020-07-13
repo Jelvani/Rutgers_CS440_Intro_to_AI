@@ -305,6 +305,10 @@ def performTests():
 
       
 
+if __name__ == "__main__":
+    #savemazes(num=50) #uncomment this and run file to generate and save 50 mazes
+
+
 '''
 maze=loadmaze(num=28)  
 A,B = maze.shape
