@@ -1,0 +1,88 @@
+\section{Part 6: - Memory Issues}
+\label{sec: Part 6}
+
+In our finally portion of this project, we will analyze our memory usage and possible optimizations. The reason for this is that for many online path planning applications, such as real-time games, and even motion planning for robots with large configuration spaces, maps consist of a much larger state space than a 101 X 101 grid.
+
+
+In this project we used Python for our implementation, and this on its own is not the most optimal solution for memory constrained environments. From a high level overview, Python is an interpreted language and has its syntax interpreted at run time. In the end, this means that the same code in Python will result in more assembly instructions than a similar implementation in the C language. Even so, we will dig into only memory usage in this section. 
+
+
+We are fortunate to have used Python for this project since it allows use to quickly prototype and get a working demo. But we are unfortunate in the memory usage for even simple data types in Python. Since Python data type sizes vary from various Python distributions, to analyze our data type sizes in bytes, we use the \texttt{getsizeof} function from the \texttt{sys} module. Our results are below:
+
+\begin{table}[H]
+  \begin{center}
+    \begin{tabular}{l|c|r}
+      \textbf{Data Type} & \textbf{Bytes}\\
+      \hline
+      Bool & 12\\
+      Tuple & 28\\
+      Int & 14\\
+      Node & 24\\
+    \end{tabular}
+    \caption{Python data type sizes}
+  \end{center}
+\end{table}
+
+The odd thing about Python is that these sizes often vary with how much data is actually stored in each variable, and in fact, \texttt{numpy} arrays follow their own data type  optimizations for memory as well. 
+
+
+If we were to use the above table, we would end up with some very inefficient designs. For example, a simple 1001 X 1001 grid would use approximately 12 MB of memory just for storing the grid. Therefore, we will use the standard C data type specifications for an Intel x86 machine running Linux provided in the table below: 
+\begin{table}[H]
+  \begin{center}
+    \begin{tabular}{l|c|r}
+      \textbf{Data Type} & \textbf{Bytes}\\
+      \hline
+      Char & 1\\
+      Short & 2\\
+      Int & 4\\
+      Pointer & 4\\
+      Node Struct & 14
+    \end{tabular}
+    \caption{C data type sizes}
+  \end{center}
+\end{table}
+
+Our \texttt{Node} struct also takes into account padding, this means we use \texttt{short} variables, and a 2 byte padding is inserted between the last short and 4 byte pointer.
+
+
+Now that we have defined our C data sizes, we can first discuss memory requirements for working with a 1001 X 1001 grid. If saving memory is our biggest concern, we can store the grid in a \texttt{char} array. Then, we can use bit wise operators to access each of the 8 bits in a char. Meaning, for each char, we can store the value of 8 cells (blocked or unblocked). This means, 
+\begin{equation}
+\lceil\frac{1001 * 1001}{8}\rceil = 125251 \; bytes \tag{1}
+\end{equation}
+Furthermore, it is very dependant on the map for how many structs in memory are allocated, but we will assume all cells end up allocated in the heap. We then obtain another 
+\begin{equation}
+1001 * 1001 * 14 = 14028014 \; bytes \tag{2}
+\end{equation}
+that are allocated in the binary heap, and since the binary heap exists as an array implementation, we will have to allocate a 1002001 length array of pointers:
+\begin{equation}
+1001 * 1001 * 4 = 4008004 \; bytes \tag{3}
+\end{equation}
+We also have to implement a method to track which nodes have been expanded, and for this we will need a Boolean matrix, which we can use from \emph{(1)}. Finally, we will need a matrix of heuristic values, and for this we will use a 1002001 length \texttt{short} array. This will put us at:
+\begin{equation}
+1001 * 1001 * 2 = 2004002 \; bytes \tag{4}
+\end{equation}
+
+Finally, from \emph{(1), (2), (3), and (4)}:
+\begin{equation}
+\frac{125251 * 2 + 14028014 + 4008004 + 2004002}{1000000} = 20.2905\; MB \tag{5}
+\end{equation}
+
+This is an approximation for the amount of memory needed to operate regular \emph{Forward $A^*$ search} on a 1001 X 1001 grid.
+
+
+We can further analyze the largest grid we can operate on in the memory constraints of \emph{4 MB} by using the same equations above.
+
+\begin{equation}
+ \frac{2 * \frac{x^2}{8} + 14x^2 + 4x^2 + 2x^2}{1000000} = 4 \; MB \tag{6}
+\end{equation}
+\begin{equation}
+ 81x^2 = 16000000 \tag{7}
+\end{equation}
+\begin{equation}
+ \lfloor x^2 \rfloor = 197530 \tag{8}
+\end{equation}
+\begin{equation}
+ \lfloor x \rfloor = 444 \tag{9}
+\end{equation}
+
+From this, we can conclude that the largest maze we are able to operate on within the constraints of \emph{4 MB} of memory is approximately a 444 X 444 maze.

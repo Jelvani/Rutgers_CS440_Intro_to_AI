@@ -224,7 +224,7 @@ def repeatedForwardAstar(maze, start, goal,useAdaptive = False):
                 nodes = AstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
             else:
                 for x in  closedList:
-                    heur[x.position] = g_n - x.g
+                    heur[x.position] = g_n - x.g #update heuristics for adaptive A*
                 nodes, closedList = AdaptiveAstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
                 g_n = 0
             if nodes is None:

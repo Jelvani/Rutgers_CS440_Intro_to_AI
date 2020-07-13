@@ -1,0 +1,62 @@
+\documentclass[pdftex,10pt,a4paper,oneside]{article}
+\usepackage[English]{babel}
+\usepackage{amsmath} %For both in-line and equation mode
+\usepackage{listings}
+\numberwithin{equation}{section} %Numbering of our equations per section
+\usepackage{graphicx} %Inserting images
+\usepackage{pgf, tikz}
+\usepackage{paralist}
+\usepackage{enumerate} 
+\usepackage{setspace} %Spacing on the front page for crest and titles
+\usepackage[hyphens]{url} %Deals with hyphens in urls to make them clickable
+\usepackage{color}
+\usepackage{amsthm}
+\usepackage{float} 
+\usepackage{subcaption}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\lstset{frame=tb,
+   language=Python,
+   aboveskip=3mm,
+   belowskip=3mm,
+   showstringspaces=false,
+   columns=flexible,
+   basicstyle={\small\ttfamily},
+   numbers=none,
+   numberstyle=\tiny\color{gray},
+   keywordstyle=\color{blue},
+   commentstyle=\color{dkgreen},
+   stringstyle=\color{mauve},
+   breaklines=true,
+   breakatwhitespace=true
+   tabsize=3
+   }
+
+\begin{document}
+
+\include{Report/Preamble/Frontpage}
+\textbf{
+For further references on code, please refer to:
+\linebreak
+\url{https://github.com/Jelvani/Rutgers_CS440_Intro_to_AI}
+}
+\input{Report/Preamble/Introduction}
+\input{Report/Preamble/ExperimentalSetup}
+\input{Report/Part0/Part0}
+\input{Report/Part1/Part1}
+\input{Report/Part2/Part2}
+\input{Report/Part3/Part3}
+\input{Report/Part4/Part4}
+\input{Report/Part5/Part5}
+\input{Report/Part6/Part6}
+
+
+\begin{thebibliography}{1}
+\bibitem{koenig}S. Koenig and M. Likhachev. Adaptive A* [Short Paper]. In Proceedings of the International Joint Conference on Autonomous Agents and Multiagent Systems (AAMAS), pages 1311-1312, 2005.
+
+\end{thebibliography}
+\end{document}

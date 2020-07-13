@@ -1,0 +1,37 @@
+\section{Introduction}
+\label{sec:Introduction}
+
+In this project, we will first perform an analysis of the classical $A^* search$  algorithm. To begin, it is important to define our environment and testing conditions. All tests are performed on a 101 X 101 grid where each cell is considered an atomic unit of the map. The map world is defined to be \emph{static} and initially \emph{unknown}, meaning the cells that are walls do not change as the \emph{agent} moves and the location of the walls is initially unknown. The agent can start at any cell for its \emph{initial state} and the agent is to navigate the \emph{partially observable} environment. That is, the agents \emph{actions} include checking any adjacent cells for walls and moving to any adjacent cells.
+
+
+Now We will briefly explain our implementation details with Python that are required for this problem. Our \emph{state space} consists of all reachable cells from the initial state, and we will therefore need a way to store each state along with the path taken to reach that state. We provide a \texttt{Node} class that looks like the following:
+\begin{figure}[h]
+\begin{lstlisting}
+class Node():
+    def __init__(self,parent = None,position = None,g = 0,h = 0):
+        self.parent = parent #type Node
+        self.position = position #type tuple
+        self.g = g
+        self.h = h
+    def __eq__(self, otherNode): #for '==' comparison of a Node object
+        return otherNode.position == self.position
+    def __lt__(self, otherNode): #for '<' comparison of a Node object
+        if self.f == otherNode.f:
+            return self.g >= otherNode.g #tie breaker for same f value
+        else:
+            return self.f < otherNode.f
+    @property
+    def f(self):
+        return self.g + self.h
+\end{lstlisting}
+\caption{A Python implementation of the \texttt{Node} class, which is created for each cell in our open list.}
+\end{figure}
+
+
+It is important to note our parent variable, which is type \texttt{Node}. This will allow us to create a linked list that represents the path taken to reach the current node. Furthermore, we will use the \texttt{Numpy} library for creating our binary 101 X 101 matrix that will represent our map with walls. The \texttt{Numpy} library also lets us easily store our generated mazes for future use. It is also important to have a efficient data structure for the priority queue required by $A^* search$. We will discuss $A^*$ in more depth in later sections, but since we need to explore the node with the smallest evaluation function, given by $f(n) = g(n) + h(n)$, we do not want to iterate over all values in the open list containing the nodes. Therefore, we use the \texttt{heapq} library, which implements a binary heap. This is also why we provide the \texttt{lt} definition in our \texttt{Node} class, since it is used by Python has an overloading operator for the \emph{less than} operator so the \texttt{heapq} library can maintain the binary heap data structure. Compared to a normal linear search with a worst case run time of $\mathcal{O}(n)$, a binary heap will give us the lowest evaluation function valued node in $\mathcal{O}(\log n)$ worst case run time.
+
+For visualization purposes we will use the \texttt{matplotlib} library. This allows us to view our \texttt{numpy} arrays on a graph and will also help us save the generated graphs to an image file.
+
+
+
+\emph{** Update: For this paper, figures displayed were using }\texttt{matplotlib}. \emph{In the latest version of the repository, the} \texttt{pygame} \emph{library is used.}

@@ -2,10 +2,12 @@ import Astar
 import pygame
 import numpy as np
 
+###################################################
 '''Choose maze number to load'''
 _MAZE_NUMBER =42
 _START = (0,0)
 _GOAL = (100,100)
+###################################################
 screen = (700,700) #screen size
 pygame.init()
 display = pygame.display.set_mode(screen)
