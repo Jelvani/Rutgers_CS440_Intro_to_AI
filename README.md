@@ -7,7 +7,7 @@ Implementation of A* and adaptive A* for online search problems in Python
 To run the code, the following Python modules need to be installed:
 * numpy
 * matplotlib
-
+* pygame
 ## Authors
 
 Alborz Jelvani
