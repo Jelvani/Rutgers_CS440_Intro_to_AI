@@ -59,8 +59,8 @@ while running:
                     print("optimalPathLength: %s" %optpathlength)
                 if event.ui_element == runBackwardAstar:
                     maze=Astar.loadmaze(num=_MAZE_NUMBER)
-                    heuristics = Astar.getHeuristics(maze,_GOAL)
-                    optimalPath = Astar.AstarCompute(maze,_START,_GOAL,heuristics)
+                    heuristics = Astar.getHeuristics(maze,_START)
+                    optimalPath = Astar.AstarCompute(maze,_GOAL,_START,heuristics)
                     followedMap = Astar.repeatedBackwardAstar(maze,_START,_GOAL)
                     maze = (1 - maze)*255 #scale colors
                     while optimalPath:
@@ -98,5 +98,5 @@ while running:
 
     manager.draw_ui(display)
     pygame.display.update()
-    pygame.time.delay(10)
+    #pygame.time.delay(3)
 pygame.quit()
