@@ -1,3 +1,5 @@
+#Following file should be run to generate 50 mazes
+
 import numpy as np
 import matplotlib.pyplot as plt
 import random as rand
@@ -52,7 +54,7 @@ def createBtrackingMaze(width=101,height=101,save=False,imgfname=None,txtfname=N
 
         ''' If temporary list is not empty, mark current node as visited and choose a random neighbor to add to stack and explore next '''
         if nebs:
-            maze[A,B]=0
+            maze[A,B]=0 #open cell
             visited[A,B]=1
             index = rand.choice(range(len(nebs)))
             A,B=walls[index]
@@ -218,7 +220,7 @@ def repeatedForwardAstar(maze, start, goal,useAdaptive = False):
                 seenMap[A+x[0],B+x[1]] = 1
         
         ''' if new walls seen on current path, then compute A* again'''
-        if seenMap[path[-1]] == 1:
+        if seenMap[path[-1]] == 1: #if wall seen on next block in path
             path.clear()
             if not useAdaptive:
                 nodes = AstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
@@ -227,7 +229,7 @@ def repeatedForwardAstar(maze, start, goal,useAdaptive = False):
                     heur[x.position] = g_n - x.g #update heuristics for adaptive A*
                 nodes, closedList = AdaptiveAstarCompute(maze=seenMap,start=current,goal=goal,heuristics=heur,_debug=False)
                 g_n = 0
-            if nodes is None:
+            if nodes is None: #means no path found by adaptiveAstarcompute
                 return None
             while nodes is not None:#get list of path to follow from linked list
                 path.append(nodes.position)
@@ -263,7 +265,7 @@ def repeatedBackwardAstar(maze, start, goal):
             if A+x[0] in range(X) and B+x[1] in range(Y) and maze[A+x[0],B+x[1]]==1:
                 seenMap[A+x[0],B+x[1]] = 1
         ''' if new walls seen on current path, then compute A* again'''
-        if seenMap[path[0]] == 1:
+        if seenMap[path[0]] == 1: #if end of returned path has wall
             path.clear()
             heur = getHeuristics(maze,current)
             nodes = AstarCompute(maze=seenMap,start=goal,goal=current,heuristics=heur,_debug=False)
@@ -281,9 +283,8 @@ def repeatedBackwardAstar(maze, start, goal):
     return followedMap
     
 
-def performTests():
+def performTests(): #used for logging runtimes
     runtimes = []
-
     for x in range(50):
         print('performTests: %s' %x)
         maze=loadmaze(num=x)
@@ -306,7 +307,7 @@ def performTests():
       
 
 if __name__ == "__main__":
-    #savemazes(num=50) #uncomment this and run file to generate and save 50 mazes
+    savemazes(num=50)
 
 
 '''
@@ -342,4 +343,3 @@ plt.grid()
 plt.show()
 '''
 #performTests()
-
