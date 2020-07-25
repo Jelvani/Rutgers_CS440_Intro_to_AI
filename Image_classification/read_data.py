@@ -27,10 +27,12 @@ def read_file(fdata, flabel, type = 'digit',WIDTH = 28, HEIGHT = 28): #returns l
                     elif currentline[x] == '#':
                         currentdigit[y][x] = 2
             numpy_list[0].append(currentdigit)
-            numpy_list[1].append(rawlabellines.pop(0))
+            label = rawlabellines.pop(0)
+            if label.isdigit():
+                numpy_list[1].append(int(label))
     return numpy_list 
 
-digits = read_file(fdata='facedata/facedatatest', flabel = 'facedata/facedatatestlabels',type = 'digit',WIDTH = 60, HEIGHT = 74)
-print(digits[1][6])
-plt.imshow(digits[0][6], interpolation='nearest')
+digits = read_file(fdata='digitdata/testimages', flabel = 'digitdata/testlabels',type = 'digit',WIDTH = 28, HEIGHT = 28)
+print(digits[1][0])
+plt.imshow(digits[0][0], interpolation='nearest')
 plt.show()
