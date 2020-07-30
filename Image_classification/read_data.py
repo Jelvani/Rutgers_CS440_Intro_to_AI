@@ -1,6 +1,13 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+'''
+Used for reading data adn returning list of type (numpyarray, label)
+for digits, data is of size 28x28
+for face, data is of size 60x74
+'''
+
 def read_file(fdata, flabel, type = 'digit',WIDTH = 28, HEIGHT = 28): #returns list of numpy arrays of images
     rawdatalines = []
     numpy_list = []
@@ -32,7 +39,8 @@ def read_file(fdata, flabel, type = 'digit',WIDTH = 28, HEIGHT = 28): #returns l
                 numpy_list[1].append(int(label))
     return numpy_list 
 
-digits = read_file(fdata='digitdata/testimages', flabel = 'digitdata/testlabels',type = 'digit',WIDTH = 28, HEIGHT = 28)
+digits = read_file(fdata='facedata/facedatatest', flabel = 'facedata/facedatatestlabels',type = 'digit',WIDTH = 60, HEIGHT = 74)
 print(digits[1][0])
 plt.imshow(digits[0][0], interpolation='nearest')
+plt.axis('off')
 plt.show()
