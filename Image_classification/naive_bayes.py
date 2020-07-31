@@ -30,7 +30,7 @@ for x in range(10):#compute average features for each class
 '''
 Now we will compute the posterior given by MAX{p(label | features) = p(features | label) * p(label)}
 '''
-digits = read_data.read_file(fdata='digitdata/testimages', flabel = 'digitdata/testlabels',WIDTH = 28, HEIGHT = 28)
+digits = read_data.read_file(fdata='digitdata/validationimages', flabel = 'digitdata/validationlabels',WIDTH = 28, HEIGHT = 28)
 
 predictions = [] #outputs from bayes classifier
 for x in range(len(digits[0])-1):
@@ -41,7 +41,7 @@ for x in range(len(digits[0])-1):
         p_y = math.log(label_obj[y].frequency / num_data)
         likelihood = 0
         for feats in range(len(features)):
-            likelihood+= (features[feats] * label_obj[y].feature_prob[feats])
+            likelihood+= math.log(abs(features[feats] - label_obj[y].feature_prob[feats])+0.000000001)
         likelihood = likelihood + p_y
         maxls.append(likelihood)
     predictions.append(maxls.index(min(maxls)))
