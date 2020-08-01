@@ -29,7 +29,6 @@ def train_faces(PERCENTAGE = 1):
     for k in range(int(num_data * PERCENTAGE)): # for each training data number
         x = rand.randint(0,len(faces[0])-1) #get x as random index
         features = get_features.features_from_image(faces[0][x]) #get vector of features
-
         if faces[1][x] == 0:
             not_face_class.frequency+=1
         elif faces[1][x] == 1:
@@ -48,6 +47,7 @@ def train_faces(PERCENTAGE = 1):
         faces[0].pop(x)
         faces[1].pop(x)
 
+
     '''
     Now we will compute the posterior given by MAX{p(label | features) = p(features | label) * p(label)}
     '''
@@ -59,17 +59,7 @@ def train_faces(PERCENTAGE = 1):
         maxls = []
         cur_guess = None
 
-        'compute probabilties for a face'
-        p_y = math.log((face_class.frequency+1) / int(num_data*PERCENTAGE))
-        likelihood = 0
-        for feats in range(len(features)):
-            if features[feats]==0:
-                likelihood+= math.log((face_class.v0[feats]+1)/(face_class.frequency+1))
-            elif features[feats]==1:
-                likelihood+= math.log((face_class.v1[feats]+1)/(face_class.frequency+1))
-        likelihood = likelihood + p_y
-        maxls.append(likelihood)
-
+        'compute probabilties for not a face'
         p_y = math.log((not_face_class.frequency+1) / int(num_data*PERCENTAGE))
         likelihood = 0
         for feats in range(len(features)):
@@ -79,17 +69,26 @@ def train_faces(PERCENTAGE = 1):
                 likelihood+= math.log((not_face_class.v1[feats]+1)/(not_face_class.frequency+1))
         likelihood = likelihood + p_y
         maxls.append(likelihood)
+        'compute probabilties for a face'
 
+        p_y = math.log((face_class.frequency+1) / int(num_data*PERCENTAGE))
+        likelihood = 0
+        for feats in range(len(features)):
+            if features[feats]==0:
+                likelihood+= math.log((face_class.v0[feats]+1)/(face_class.frequency+1))
+            elif features[feats]==1:
+                likelihood+= math.log((face_class.v1[feats]+1)/(face_class.frequency+1))
+        likelihood = likelihood + p_y
+        maxls.append(likelihood)
         predictions.append(maxls.index(max(maxls)))
 
     hits = 0
-    for x in predictions:
+    for x in range(len(faces[1])):
         if predictions[x] == faces[1][x]:
             hits+=1
     accuracy = hits/len(faces[1])
     print("Accuracy of: %s" %(accuracy))
     return accuracy
-
 
 
 acc = []

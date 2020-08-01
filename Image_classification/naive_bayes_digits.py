@@ -66,7 +66,7 @@ def train_digits(PERCENTAGE = 1):
         predictions.append(maxls.index(max(maxls)))
 
     hits = 0
-    for x in predictions:
+    for x in range(len(digits[1])):
         if predictions[x] == digits[1][x]:
             hits+=1
     accuracy = hits/len(digits[1])
