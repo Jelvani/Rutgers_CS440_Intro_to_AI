@@ -6,7 +6,7 @@ for digits, data is of size 28x28
 for face, data is of size 60x74
 '''
 
-def read_file(fdata, flabel, WIDTH = 28, HEIGHT = 28,percentage = 1): #returns list of numpy arrays of images
+def read_file(fdata, flabel, WIDTH = 28, HEIGHT = 28): #returns list of numpy arrays of images
     rawdatalines = []
     numpy_list = []
     numpy_list.append([]) #for image
@@ -22,7 +22,7 @@ def read_file(fdata, flabel, WIDTH = 28, HEIGHT = 28,percentage = 1): #returns l
             if rawdatalines:
                 currentline = rawdatalines.pop(0)
             else:
-                break
+                return numpy_list 
             for x in range(len(currentline)):
                 if currentline[x] == ' ':
                     currentdigit[y][x] = 0
