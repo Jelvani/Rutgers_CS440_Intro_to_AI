@@ -6,7 +6,7 @@ for digits, data is of size 28x28
 for face, data is of size 60x74
 '''
 
-def read_file(fdata, flabel, WIDTH = 28, HEIGHT = 28): #returns list of numpy arrays of images
+def read_file(fdata, flabel, WIDTH = 28, HEIGHT = 28, type='digits'): #returns list of numpy arrays of images
     rawdatalines = []
     numpy_list = []
     numpy_list.append([]) #for image
@@ -23,13 +23,20 @@ def read_file(fdata, flabel, WIDTH = 28, HEIGHT = 28): #returns list of numpy ar
                 currentline = rawdatalines.pop(0)
             else:
                 return numpy_list 
-            for x in range(len(currentline)):
-                if currentline[x] == ' ':
-                    currentdigit[y][x] = 0
-                elif currentline[x] == '+':
-                    currentdigit[y][x] = 1
-                elif currentline[x] == '#':
-                    currentdigit[y][x] = 2
+            if type=='digits':
+                for x in range(len(currentline)):
+                    if currentline[x] == ' ':
+                        currentdigit[y][x] = 0
+                    elif currentline[x] == '+':
+                        currentdigit[y][x] = 1
+                    elif currentline[x] == '#':
+                        currentdigit[y][x] = 2
+            elif type=='faces':
+                for x in range(len(currentline)):
+                    if currentline[x] == ' ':
+                        currentdigit[y][x] = 0
+                    elif currentline[x] == '#':
+                        currentdigit[y][x] = 1
         numpy_list[0].append(currentdigit)
         label = rawlabellines.pop(0)
         if label.isdigit():

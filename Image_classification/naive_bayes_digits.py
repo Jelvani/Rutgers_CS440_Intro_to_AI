@@ -4,6 +4,7 @@ import get_features
 import numpy as np
 import math
 import random as rand
+import os
 
 class label():#represents a class of digit
     v0 = []
@@ -12,7 +13,7 @@ class label():#represents a class of digit
     frequency = 0 #amount of times label is seen in training
 
 def train_digits(PERCENTAGE = 1):
-    digits = read_data.read_file(fdata='digitdata/trainingimages', flabel = 'digitdata/traininglabels',WIDTH = 28, HEIGHT = 28)
+    digits = read_data.read_file(fdata='digitdata/trainingimages', flabel = 'digitdata/traininglabels',WIDTH = 28, HEIGHT = 28,type='digits')
     num_data =  len(digits[0])#amount of training data
     label_obj = []
     features = get_features.features_from_image(digits[0][0])
@@ -43,7 +44,7 @@ def train_digits(PERCENTAGE = 1):
     Now we will compute the posterior given by MAX{p(label | features) = p(features | label) * p(label)}
     '''
 
-    digits = read_data.read_file(fdata='digitdata/testimages', flabel = 'digitdata/testlabels',WIDTH = 28, HEIGHT = 28)
+    digits = read_data.read_file(fdata='digitdata/testimages', flabel = 'digitdata/testlabels',WIDTH = 28, HEIGHT = 28,type='digits')
 
     predictions = [] #outputs from bayes classifier
     for x in range(len(digits[0])):
@@ -72,11 +73,11 @@ def train_digits(PERCENTAGE = 1):
     print("Accuracy of: %s" %(accuracy))
     return accuracy
 
-train_digits(PERCENTAGE = 1)
-'''
 acc = []
 for x in range(1,10,1):
-    acc.append(train_digits(PERCENTAGE = x/10))
+    for y in range(1,5,1):
+        acc.append(train_digits(PERCENTAGE = x/10))
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+np.savetxt(__location__ + 'digits.txt',acc)
 h1 = plt.plot(acc)
 plt.show(h1)
-'''
