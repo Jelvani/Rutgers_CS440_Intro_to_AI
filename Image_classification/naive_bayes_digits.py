@@ -10,18 +10,19 @@ class label():#represents a class of digit
     v0 = []
     v1 = []
     v2 = []
-    frequency = 0 #amount of times label is seen in training
+    frequency = 1 #amount of times label is seen in training
 
 def train_digits(PERCENTAGE = 1):
+    SMOOTHER = 0.001
     digits = read_data.read_file(fdata='digitdata/trainingimages', flabel = 'digitdata/traininglabels',WIDTH = 28, HEIGHT = 28,type='digits')
     num_data =  len(digits[0])#amount of training data
     label_obj = []
     features = get_features.features_from_image(digits[0][0])
     for x in range(10): #create 10 label objects for each class 
         lbl = label()
-        lbl.v0 = np.zeros(len(features))
-        lbl.v1 = np.zeros(len(features))
-        lbl.v2 = np.zeros(len(features))
+        lbl.v0 = np.ones(len(features))
+        lbl.v1 = np.ones(len(features))
+        lbl.v2 = np.ones(len(features))
         label_obj.append(lbl)
     '''
     get frequency of feature values for each feature in training set
@@ -52,15 +53,15 @@ def train_digits(PERCENTAGE = 1):
         maxls = []
         cur_guess = None
         for y in  range(10):#get prob of each label and choose highest as answer
-            p_y = math.log((label_obj[y].frequency+1) / int(num_data*PERCENTAGE))
+            p_y = math.log((label_obj[y].frequency) / int(num_data*PERCENTAGE))
             likelihood = 0
             for feats in range(len(features)):
                 if features[feats]==0:
-                    likelihood+= math.log((label_obj[y].v0[feats]+1)/(label_obj[y].frequency+1))
+                    likelihood+= math.log((label_obj[y].v0[feats] + SMOOTHER)/(label_obj[y].frequency +label_obj[y].v0[feats])*SMOOTHER)
                 elif features[feats]==1:
-                    likelihood+= math.log((label_obj[y].v1[feats]+1)/(label_obj[y].frequency+1))
+                    likelihood+= math.log((label_obj[y].v1[feats] + SMOOTHER)/(label_obj[y].frequency + label_obj[y].v1[feats])*SMOOTHER)
                 elif features[feats]==2:
-                    likelihood+= math.log((label_obj[y].v2[feats]+1)/(label_obj[y].frequency+1))    
+                    likelihood+= math.log((label_obj[y].v2[feats] + SMOOTHER)/(label_obj[y].frequency + label_obj[y].v2[feats])*SMOOTHER)    
             likelihood = likelihood + p_y
             maxls.append(likelihood)
         predictions.append(maxls.index(max(maxls)))

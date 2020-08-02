@@ -6,3 +6,6 @@ Returns a list of features
 
 def features_from_image(image):
     return image.flatten()
+
+def advanced_features_from_image(image):
+    return image.flatten()
