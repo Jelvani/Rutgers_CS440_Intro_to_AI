@@ -8,8 +8,7 @@ import os
 
 
 class label():#represents a class of face
-    v0 = []
-    v1 = []
+    features = []
     frequency = 1 #amount of times label is seen in training
 
 def train_faces(PERCENTAGE = 1):
@@ -18,11 +17,9 @@ def train_faces(PERCENTAGE = 1):
     num_data =  len(faces[0])#amount of training data
     features = get_features.advanced_features_from_image(faces[0][0])
     face_class = label()
-    face_class.v0 = np.zeros(len(features))
-    face_class.v1 = np.zeros(len(features))
+    face_class.features = np.zeros(len(features))
     not_face_class = label()
-    not_face_class.v0 = np.zeros(len(features))
-    not_face_class.v1 = np.zeros(len(features))
+    not_face_class.features = np.zeros(len(features))
     '''
     get frequency of feature values for each feature in training set
     '''
@@ -31,19 +28,10 @@ def train_faces(PERCENTAGE = 1):
         features = get_features.advanced_features_from_image(faces[0][x]) #get vector of features
         if faces[1][x] == 0:
             not_face_class.frequency+=1
+            not_face_class.features+=features
         elif faces[1][x] == 1:
             face_class.frequency+=1
-        for y in range(len(features)):
-            if faces[1][x] == 0:
-                if features[y]==0:
-                    not_face_class.v0[y]+=1
-                elif features[y]==1:
-                    not_face_class.v1[y]+=1
-            elif faces[1][x] == 1:
-                if features[y]==0:
-                    face_class.v0[y]+=1
-                elif features[y]==1:
-                    face_class.v1[y]+=1
+            face_class.features+=features
         faces[0].pop(x)
         faces[1].pop(x)
 
@@ -63,9 +51,9 @@ def train_faces(PERCENTAGE = 1):
         likelihood = 0
         for feats in range(len(features)):
             if features[feats]==0:
-                likelihood+= math.log((not_face_class.v0[feats]+SMOOTHER)/(not_face_class.frequency + not_face_class.v0[feats])*SMOOTHER)
+                likelihood+= math.log(((not_face_class.frequency-not_face_class.features[feats])+SMOOTHER)/(not_face_class.frequency + (not_face_class.frequency-not_face_class.features[feats]))*SMOOTHER)
             elif features[feats]==1:
-                likelihood+= math.log((not_face_class.v1[feats]+SMOOTHER)/(not_face_class.frequency + not_face_class.v1[feats])*SMOOTHER)
+                likelihood+= math.log((not_face_class.features[feats]+SMOOTHER)/(not_face_class.frequency + not_face_class.features[feats])*SMOOTHER)
         likelihood = likelihood + p_y
         maxls.append(likelihood)
         'compute probabilties for a face'
@@ -74,9 +62,9 @@ def train_faces(PERCENTAGE = 1):
         likelihood = 0
         for feats in range(len(features)):
             if features[feats]==0:
-                likelihood+= math.log((face_class.v0[feats]+SMOOTHER)/(face_class.frequency + face_class.v0[feats])*SMOOTHER)
+                likelihood+= math.log(((face_class.frequency-face_class.features[feats])+SMOOTHER)/(face_class.frequency + (face_class.frequency-face_class.features[feats]))*SMOOTHER)
             elif features[feats]==1:
-                likelihood+= math.log((face_class.v1[feats]+SMOOTHER)/(face_class.frequency + face_class.v1[feats])*SMOOTHER)
+                likelihood+= math.log((face_class.features[feats]+SMOOTHER)/(face_class.frequency + face_class.features[feats])*SMOOTHER)
         likelihood = likelihood + p_y
         maxls.append(likelihood)
         predictions.append(maxls.index(max(maxls)))
