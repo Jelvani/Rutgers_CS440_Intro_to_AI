@@ -5,7 +5,9 @@ import numpy as np
 import math
 import random as rand
 import os
+import time
 
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 class label():#represents a class of digit
     v0 = []
     v1 = []
@@ -71,14 +73,25 @@ def train_digits(PERCENTAGE = 1):
         if predictions[x] == digits[1][x]:
             hits+=1
     accuracy = hits/len(digits[1])
-    print("Accuracy of: %s" %(accuracy))
     return accuracy
 
-acc = []
-for x in range(1,10,1):
-    for y in range(1,5,1):
-        acc.append(train_digits(PERCENTAGE = x/10))
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-np.savetxt(__location__ + 'digits.txt',acc)
-h1 = plt.plot(acc)
-plt.show(h1)
+def runTests(save = False):
+    accuracy = [] 
+    accuracy.append([]) #accuracy
+    accuracy.append([]) #time in seconds
+    for x in range(1,11,1):
+        x=x*0.1
+        for y in range(1,6,1):
+            start = time.time()
+            acc = train_digits(PERCENTAGE = x)
+            end = time.time()
+            accuracy[0].append(acc)
+            accuracy[1].append(end-start)
+            print('Percent: %s' %x)
+            print('Iter: %s' %y)
+            print('Accuracy: %s' %acc)
+    if save:
+        print('Saved data to: ' + (__location__ + 'Image_classification/' + 'bayes_digits_training_results.txt'))
+        np.savetxt(__location__ + '\\bayes_digits_training_results.txt',accuracy)
+
+runTests(save = True)

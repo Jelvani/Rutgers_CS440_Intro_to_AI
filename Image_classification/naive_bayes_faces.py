@@ -6,14 +6,14 @@ import math
 import random as rand
 import os
 
-
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 class label():#represents a class of face
     features = []
     frequency = 1 #amount of times label is seen in training
 
 def train_faces(PERCENTAGE = 1):
     SMOOTHER = 1
-    faces = read_data.read_file(fdata='facedata/facedatatrain', flabel = 'facedata/facedatatrainlabels',WIDTH = 60, HEIGHT = 74,type='faces')
+    faces = read_data.read_file(fdata='facedata/facedatatrain', flabel = 'facedata/facedatatrainlabels',WIDTH = 60, HEIGHT = 70,type='faces')
     num_data =  len(faces[0])#amount of training data
     features = get_features.advanced_features_from_image(faces[0][0])
     face_class = label()
@@ -39,7 +39,7 @@ def train_faces(PERCENTAGE = 1):
     '''
     Now we will compute the posterior given by MAX{p(label | features) = p(features | label) * p(label)}
     '''
-    faces = read_data.read_file(fdata='facedata/facedatavalidation', flabel = 'facedata/facedatavalidationlabels',WIDTH = 60, HEIGHT = 74,type='faces')
+    faces = read_data.read_file(fdata='facedata/facedatatest', flabel = 'facedata/facedatatestlabels',WIDTH = 60, HEIGHT = 70,type='faces')
     predictions = [] #outputs from bayes classifier
     
     for x in range(len(faces[0])):
@@ -81,7 +81,4 @@ acc = []
 for x in range(1,10,1):
     for y in range(1,5,1):
         acc.append(train_faces(PERCENTAGE = 10/10))
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-np.savetxt(__location__ + 'faces.txt',acc)
-h1 = plt.plot(acc)
-plt.show(h1)
+

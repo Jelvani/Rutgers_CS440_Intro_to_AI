@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 '''
 Used for extracting features from a given numpyarray image
 Returns a list of features

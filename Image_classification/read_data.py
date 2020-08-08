@@ -3,7 +3,7 @@ import numpy as np
 '''
 Used for reading data adn returning list of type (numpyarray, label)
 for digits, data is of size 28x28
-for face, data is of size 60x74
+for face, data is of size 60x70
 '''
 
 def read_file(fdata, flabel, WIDTH = 28, HEIGHT = 28, type='digits'): #returns list of numpy arrays of images
