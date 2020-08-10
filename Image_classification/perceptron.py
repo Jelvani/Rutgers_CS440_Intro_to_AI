@@ -103,7 +103,7 @@ def runTests(save = False, digits = True):
         x=x*0.1
         for y in range(1,6,1):
             start = time.time()
-            acc = deploy_model(1,1,digits = digits)
+            acc = deploy_model(x,1,digits = digits)
             end = time.time()
             accuracy[0].append(acc)
             accuracy[1].append(end-start)
@@ -118,4 +118,4 @@ def runTests(save = False, digits = True):
             print('Saved data to: ' + (__location__ + 'Image_classification/' + 'perceptron_faces_training_results.txt'))
             np.savetxt(__location__ + '\\perceptron_faces_training_results.txt',accuracy)
 
-runTests(save = True,digits=False)
+#runTests(save = True,digits=True)

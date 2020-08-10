@@ -5,6 +5,7 @@ import numpy as np
 import math
 import random as rand
 import os
+import time
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 class label():#represents a class of face
@@ -12,7 +13,7 @@ class label():#represents a class of face
     frequency = 1 #amount of times label is seen in training
 
 def train_faces(PERCENTAGE = 1):
-    SMOOTHER = 1
+    
     faces = read_data.read_file(fdata='facedata/facedatatrain', flabel = 'facedata/facedatatrainlabels',WIDTH = 60, HEIGHT = 70,type='faces')
     num_data =  len(faces[0])#amount of training data
     features = get_features.advanced_features_from_image(faces[0][0])
@@ -34,11 +35,15 @@ def train_faces(PERCENTAGE = 1):
             face_class.features+=features
         faces[0].pop(x)
         faces[1].pop(x)
+    return face_class,not_face_class, num_data
 
 
+def infrence_model(PERCENTAGE = 1):
     '''
     Now we will compute the posterior given by MAX{p(label | features) = p(features | label) * p(label)}
     '''
+    SMOOTHER = 1
+    face_class,not_face_class, num_data = train_faces(PERCENTAGE=PERCENTAGE)
     faces = read_data.read_file(fdata='facedata/facedatatest', flabel = 'facedata/facedatatestlabels',WIDTH = 60, HEIGHT = 70,type='faces')
     predictions = [] #outputs from bayes classifier
     
@@ -74,11 +79,25 @@ def train_faces(PERCENTAGE = 1):
         if predictions[x] == faces[1][x]:
             hits+=1
     accuracy = hits/len(faces[1])
-    print("Accuracy of: %s" %(accuracy))
     return accuracy
 
-acc = []
-for x in range(1,10,1):
-    for y in range(1,5,1):
-        acc.append(train_faces(PERCENTAGE = 10/10))
+def runTests(save = False):
+    accuracy = [] 
+    accuracy.append([]) #accuracy
+    accuracy.append([]) #time in seconds
+    for x in range(1,11,1):
+        x=x*0.1
+        for y in range(1,6,1):
+            start = time.time()
+            acc = infrence_model(PERCENTAGE = x)
+            end = time.time()
+            accuracy[0].append(acc)
+            accuracy[1].append(end-start)
+            print('Percent: %s' %x)
+            print('Iter: %s' %y)
+            print('Accuracy: %s' %acc)
+    if save:
+        print('Saved data to: ' + (__location__ + 'Image_classification/' + 'bayes_faces_training_results.txt'))
+        np.savetxt(__location__ + '\\bayes_faces_training_results.txt',accuracy)
 
+#runTests(False)

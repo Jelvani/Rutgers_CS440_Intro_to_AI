@@ -15,7 +15,7 @@ class label():#represents a class of digit
     frequency = 1 #amount of times label is seen in training
 
 def train_digits(PERCENTAGE = 1):
-    SMOOTHER = 0.001
+    
     digits = read_data.read_file(fdata='digitdata/trainingimages', flabel = 'digitdata/traininglabels',WIDTH = 28, HEIGHT = 28,type='digits')
     num_data =  len(digits[0])#amount of training data
     label_obj = []
@@ -43,10 +43,16 @@ def train_digits(PERCENTAGE = 1):
         digits[0].pop(x)
         digits[1].pop(x)
 
-    '''
+    return label_obj, num_data
+
+
+'''
     Now we will compute the posterior given by MAX{p(label | features) = p(features | label) * p(label)}
     '''
-
+def infrence_model(PERCENTAGE = 1):
+    SMOOTHER = 1
+    label_obj, num_data = train_digits(PERCENTAGE = PERCENTAGE)
+    
     digits = read_data.read_file(fdata='digitdata/testimages', flabel = 'digitdata/testlabels',WIDTH = 28, HEIGHT = 28,type='digits')
 
     predictions = [] #outputs from bayes classifier
@@ -83,7 +89,7 @@ def runTests(save = False):
         x=x*0.1
         for y in range(1,6,1):
             start = time.time()
-            acc = train_digits(PERCENTAGE = x)
+            acc = infrence_model(PERCENTAGE = x)
             end = time.time()
             accuracy[0].append(acc)
             accuracy[1].append(end-start)
@@ -94,4 +100,4 @@ def runTests(save = False):
         print('Saved data to: ' + (__location__ + 'Image_classification/' + 'bayes_digits_training_results.txt'))
         np.savetxt(__location__ + '\\bayes_digits_training_results.txt',accuracy)
 
-runTests(save = True)
+#runTests(save = False)
